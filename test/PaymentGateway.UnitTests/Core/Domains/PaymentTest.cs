@@ -3,7 +3,7 @@ using PaymentGateway.Core.Exceptions;
 
 namespace PaymentGateway.UnitTests.Core.Domains
 {
-    public class PaymentTests
+    public class PaymentTest
     {
         [Fact]
         public void Constructor_WhenValidDataProvided_ShouldInitializeProperties()

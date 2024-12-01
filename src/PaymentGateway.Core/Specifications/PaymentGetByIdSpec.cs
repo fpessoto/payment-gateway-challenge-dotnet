@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Core.Specifications;
 
-public class PaymentGetByIdSpec : Specification<Payment>
+public sealed class PaymentGetByIdSpec : Specification<Payment>
 {
     public PaymentGetByIdSpec(Guid paymentId) =>
         Query

@@ -69,7 +69,7 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
     }
 
     [Fact]
-    public async Task Create_WithInvalidData_Returns400ForInvalidPaymentRequest()
+    public async Task Create_WithInvalidData_Returns400()
     {
         // Arrange
         var invalidPaymentRequest = new CreatePaymentRequest

@@ -1,7 +1,9 @@
 ﻿using Ardalis.Result;
 
 using MediatR;
+
 using Microsoft.AspNetCore.Mvc;
+
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.UseCases.Payments;
@@ -12,7 +14,7 @@ namespace PaymentGateway.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class PaymentsController(IMediator mediator) : Controller
+public class PaymentsController(IMediator mediator, ILogger<PaymentsController> logger) : Controller
 {
     [HttpPost]
     public async Task<ActionResult<PaymentDto>> Post([FromBody] CreatePaymentRequest request)
@@ -31,14 +33,17 @@ public class PaymentsController(IMediator mediator) : Controller
         }
         catch (BusinessException e)
         {
+            logger.LogError(e, "CreatePayment Failed with BusinessException");
             return BadRequest(new { Status = "Rejected", Message = e.Message });
         }
         catch (ExternalServiceUnavailableException e)
         {
+            logger.LogError(e, "CreatePayment Failed with ExternalServiceUnavailableException");
             return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
         catch (Exception e)
         {
+            logger.LogError(e, "CreatePayment Failed with Exception");
             return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
@@ -46,18 +51,26 @@ public class PaymentsController(IMediator mediator) : Controller
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PaymentDto?>> GetPaymentAsync(Guid id)
     {
-        var result = await mediator.Send(new GetPaymentQuery(id));
-
-        if (result.Status == ResultStatus.NotFound)
+        try
         {
-            return NotFound();
-        }
+            var result = await mediator.Send(new GetPaymentQuery(id));
 
-        if (result.IsSuccess)
+            if (result.Status == ResultStatus.NotFound)
+            {
+                return NotFound();
+            }
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+
+            return BadRequest();
+        }
+        catch (Exception e)
         {
-            return Ok(result.Value);
+            logger.LogError(e, "GetPayment Failed");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
-
-        return BadRequest();
     }
 }
