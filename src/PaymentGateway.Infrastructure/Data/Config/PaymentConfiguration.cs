@@ -1,5 +1,4 @@
-﻿using PaymentGateway.Core.ContributorAggregate;
-using PaymentGateway.Core.Domains;
+﻿using PaymentGateway.Core.Domains;
 
 namespace PaymentGateway.Infrastructure.Data.Config;
 

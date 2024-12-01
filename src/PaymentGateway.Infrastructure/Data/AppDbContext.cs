@@ -1,5 +1,4 @@
-﻿using PaymentGateway.Core.ContributorAggregate;
-using PaymentGateway.Core.Domains;
+﻿using PaymentGateway.Core.Domains;
 
 namespace PaymentGateway.Infrastructure.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options,
@@ -7,7 +6,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options,
 {
   private readonly IDomainEventDispatcher? _dispatcher = dispatcher;
 
-  public DbSet<Contributor> Contributors => Set<Contributor>();
   public DbSet<Payment> Payments => Set<Payment>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)

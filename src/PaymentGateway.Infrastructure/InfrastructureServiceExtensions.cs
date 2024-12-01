@@ -1,8 +1,4 @@
-﻿using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Core.Services;
-using PaymentGateway.Infrastructure.Data;
-using PaymentGateway.Infrastructure.Data.Queries;
-using PaymentGateway.UseCases.Contributors.List;
+﻿using PaymentGateway.Infrastructure.Data;
 
 
 namespace PaymentGateway.Infrastructure;
@@ -19,9 +15,7 @@ public static class InfrastructureServiceExtensions
      options.UseSqlite(connectionString));
 
     services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>))
-           .AddScoped(typeof(IReadRepository<>), typeof(EfRepository<>))
-           .AddScoped<IListContributorsQueryService, ListContributorsQueryService>()
-           .AddScoped<IDeleteContributorService, DeleteContributorService>();
+        .AddScoped(typeof(IReadRepository<>), typeof(EfRepository<>));
 
 
     logger.LogInformation("{Project} services registered", "Infrastructure");
