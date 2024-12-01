@@ -6,9 +6,8 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
     public void Configure(EntityTypeBuilder<Payment> builder)
     {
-        builder.Property(p => p.EncryptedCardNumber)
+        builder.Property(p => p.CardNumber)
             .IsRequired();
-
         builder.Property(p => p.ExpiryMonth).IsRequired();
         builder.Property(p => p.ExpiryYear).IsRequired();
         builder.Property(p => p.Cvv).IsRequired();

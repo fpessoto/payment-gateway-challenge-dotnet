@@ -1,5 +1,4 @@
 using PaymentGateway.Api.Configurations;
-using PaymentGateway.Api.Services;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.AcquiringBanking;
 
@@ -14,13 +13,6 @@ var logger = Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 logger.Information("Starting web host");
-
-// builder.WebHost.ConfigureKestrel(serverOptions =>
-// {
-//     serverOptions.ListenAnyIP(5000); // Listen on port 5000
-//     serverOptions.ListenAnyIP(5001, listenOptions => listenOptions.UseHttps()); // HTTPS
-// });
-
 
 builder.AddLoggerConfigs();
 
@@ -56,3 +48,7 @@ app.MapControllers();
 await app.UseAppMiddlewareAndSeedDatabase();
 
 app.Run();
+
+
+// Make the implicit Program.cs class public, so integration tests can reference the correct assembly for host building
+public partial class Program { }

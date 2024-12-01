@@ -1,12 +1,10 @@
 ﻿using Ardalis.Result;
 
 using MediatR;
-
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-
 using PaymentGateway.Api.Models.Requests;
-using PaymentGateway.Api.Models.Responses;
+using PaymentGateway.Core.Exceptions;
+using PaymentGateway.UseCases.Payments;
 using PaymentGateway.UseCases.Payments.Create;
 using PaymentGateway.UseCases.Payments.Get;
 
@@ -17,7 +15,7 @@ namespace PaymentGateway.Api.Controllers;
 public class PaymentsController(IMediator mediator) : Controller
 {
     [HttpPost]
-    public async Task<ActionResult<PostPaymentResponse>> Post([FromBody]CreatePaymentRequest request)
+    public async Task<ActionResult<AuthorizedPaymentDto>> Post([FromBody] CreatePaymentRequest request)
     {
         try
         {
@@ -29,20 +27,27 @@ public class PaymentsController(IMediator mediator) : Controller
                 return Ok(result.Value);
             }
 
-            return BadRequest();
+            return BadRequest(string.Join(", ", result.ValidationErrors));
+        }
+        catch (BusinessException e)
+        {
+            return BadRequest(new { Status = "Rejected", Message = e.Message });
+        }
+        catch (ExternalServiceUnavailableException e)
+        {
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
         catch (Exception e)
         {
             return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
-   
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
+    public async Task<ActionResult<AuthorizedPaymentDto?>> GetPaymentAsync(Guid id)
     {
         var result = await mediator.Send(new GetPaymentQuery(id));
-        
+
         if (result.Status == ResultStatus.NotFound)
         {
             return NotFound();

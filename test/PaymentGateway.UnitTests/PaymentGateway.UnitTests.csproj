@@ -10,6 +10,7 @@
     <Compile Remove="Core\Services\ToDoItemSearchService_GetNextIncompleteItem.cs" />
     <Compile Remove="Core\Services\DeleteContributorSevice_DeleteContributor.cs" />
     <Compile Remove="UseCases\Contributors\CreateContributorHandlerHandle.cs" />
+    <Compile Remove="UseCases\Contributors\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,14 +35,10 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Core\Services\" />
-    <Folder Include="UseCases\Contributors\" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\PaymentGateway.Core\PaymentGateway.Core.csproj" />
     <ProjectReference Include="..\..\src\PaymentGateway.UseCases\PaymentGateway.UseCases.csproj" />
   </ItemGroup>
 
-</Project>
+  </Project>

@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PaymentGateway.Core.Domains;
+using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Infrastructure.AcquiringBanking;
@@ -69,7 +70,7 @@ public class AcquiringBankingService : IAcquiringBankingService
         {
             // Handle exceptions (e.g., logging, rethrowing, or returning a default response)
             _logger.LogError(ex, "Error calling Acquiring Banking Service");
-            throw;
+            throw new ExternalServiceUnavailableException("Banking Service Exception");
         }
     }
 
