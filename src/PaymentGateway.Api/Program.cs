@@ -15,6 +15,13 @@ var logger = Log.Logger = new LoggerConfiguration()
 
 logger.Information("Starting web host");
 
+// builder.WebHost.ConfigureKestrel(serverOptions =>
+// {
+//     serverOptions.ListenAnyIP(5000); // Listen on port 5000
+//     serverOptions.ListenAnyIP(5001, listenOptions => listenOptions.UseHttps()); // HTTPS
+// });
+
+
 builder.AddLoggerConfigs();
 
 var appLogger = new SerilogLoggerFactory(logger)
@@ -40,7 +47,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

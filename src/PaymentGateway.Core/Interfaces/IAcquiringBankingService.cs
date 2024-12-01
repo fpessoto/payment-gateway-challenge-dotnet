@@ -7,4 +7,4 @@ public interface IAcquiringBankingService
     Task<AuthorizePaymentResponse> AuthorizePayment(Payment payment);
 }
 
-public record AuthorizePaymentResponse(bool Authorized, Guid AuthorizationCode);
+public record AuthorizePaymentResponse(bool Authorized, string? AuthorizationCode);

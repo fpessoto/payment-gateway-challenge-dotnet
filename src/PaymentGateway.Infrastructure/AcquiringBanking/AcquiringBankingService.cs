@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
 using PaymentGateway.Core.Domains;
 using PaymentGateway.Core.Interfaces;
 
@@ -9,15 +8,30 @@ namespace PaymentGateway.Infrastructure.AcquiringBanking;
 
 public class AcquiringBankingService : IAcquiringBankingService
 {
-    private HttpClient _httpClient = new HttpClient();
+    private readonly ILogger<AcquiringBankingService> _logger;
+    private readonly HttpClient _httpClient = new HttpClient();
+    private readonly string? _baseUrl;
+
+    public AcquiringBankingService(ILogger<AcquiringBankingService> logger, IConfiguration configuration)
+    {
+        _logger = logger;
+
+        // Retrieve the base URL from appsettings.json
+        _baseUrl = configuration["AcquiringBank:BaseUrl"];
+        if (string.IsNullOrEmpty(_baseUrl))
+        {
+            throw new ArgumentNullException(nameof(_baseUrl), "Acquiring Bank BaseUrl is not configured.");
+        }
+    }
 
     public async Task<AuthorizePaymentResponse> AuthorizePayment(Payment payment)
     {
-        const string url = "http://localhost:8080/payments";
+        const string endpoint = "/payments";
 
         try
         {
             var month = ConvertMonthToString(payment.ExpiryMonth);
+
             // Prepare the request body as JSON
             var requestBody = new PaymentRequestDto
             {
@@ -30,6 +44,12 @@ public class AcquiringBankingService : IAcquiringBankingService
 
             var jsonContent = JsonSerializer.Serialize(requestBody);
             var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            // Build the full URL
+            var url = $"{_baseUrl}{endpoint}";
+
+            _logger.LogInformation("Acquiring service {url}", url);
+
             // Send the POST request
             var response = await _httpClient.PostAsync(url, httpContent);
 
@@ -48,7 +68,7 @@ public class AcquiringBankingService : IAcquiringBankingService
         catch (Exception ex)
         {
             // Handle exceptions (e.g., logging, rethrowing, or returning a default response)
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            _logger.LogError(ex, "Error calling Acquiring Banking Service");
             throw;
         }
     }
@@ -81,6 +101,6 @@ public class AcquiringBankingService : IAcquiringBankingService
         [JsonPropertyName("authorized")] public bool Authorized { get; set; }
 
         [JsonPropertyName("authorization_code")]
-        public Guid AuthorizationCode { get; set; }
+        public string? AuthorizationCode { get; set; }
     }
 }

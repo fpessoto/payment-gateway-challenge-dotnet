@@ -14,16 +14,15 @@ public class CreatePaymentHandler(IRepository<Payment> repository, IAcquiringBan
 
         var authorizePaymentResponse = await acquiringBankingService.AuthorizePayment(newPayment);
 
-        if (authorizePaymentResponse.Authorized is false)
-        {
-            throw new Exception("Payment authorization failed");
-        }
+        var paymentStatus = authorizePaymentResponse.Authorized
+            ? PaymentStatus.Authorized
+            : PaymentStatus.Declined;
 
-        newPayment.SetAuthorization("Success", authorizePaymentResponse.AuthorizationCode);
+        newPayment.SetAuthorization(PaymentStatus.Authorized, authorizePaymentResponse.AuthorizationCode);
 
         await repository.AddAsync(newPayment, cancellationToken);
 
-        var createdPaymentResponse = new AuthorizedPaymentDto(newPayment.Id, "Authorized",
+        var createdPaymentResponse = new AuthorizedPaymentDto(newPayment.Id, paymentStatus.ToString(),
             newPayment.LastFourCardDigits,
             newPayment.ExpiryMonth, newPayment.ExpiryYear, newPayment.Currency, newPayment.Amount,
             authorizePaymentResponse.AuthorizationCode);

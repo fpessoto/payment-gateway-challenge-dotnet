@@ -12,4 +12,15 @@ services:
       - type: bind
         source: ./imposters
         target: /imposters
-      
+
+  paymentgateway_api:
+    container_name: paymentgateway_api
+    build:
+      context: .
+      dockerfile: ./src/PaymentGateway.Api/Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - bank_simulator

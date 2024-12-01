@@ -16,7 +16,9 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Currency).IsRequired();
         builder.Property(p => p.Amount).IsRequired();
         builder.Property(p => p.LastFourCardDigits).IsRequired();
-        builder.Property(p => p.Status).IsRequired();
+        builder.Property(p => p.Status).HasConversion(
+            x => x.Value,
+            x => PaymentStatus.FromValue(x)).IsRequired();
         builder.Property(p => p.AuthorizationCode).IsRequired();
     }
 }

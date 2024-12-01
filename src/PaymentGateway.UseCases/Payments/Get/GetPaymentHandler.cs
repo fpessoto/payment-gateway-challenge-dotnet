@@ -15,7 +15,7 @@ public class GetPaymentHandler(IReadRepository<Payment> repository)
         var entity = await repository.FirstOrDefaultAsync(spec, cancellationToken);
         if (entity == null) return Result.NotFound();
 
-        return new AuthorizedPaymentDto(entity.Id, entity.Status, entity.LastFourCardDigits, entity.ExpiryMonth,
+        return new AuthorizedPaymentDto(entity.Id, entity.Status.ToString(), entity.LastFourCardDigits, entity.ExpiryMonth,
             entity.ExpiryYear, entity.Currency, entity.Amount, entity.AuthorizationCode);
     }
 }

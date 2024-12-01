@@ -8,4 +8,4 @@ public record AuthorizedPaymentDto(
     int ExpiryYear,
     string Currency,
     long Amount,
-    Guid AuthorizationCode);
+    string? AuthorizationCode);

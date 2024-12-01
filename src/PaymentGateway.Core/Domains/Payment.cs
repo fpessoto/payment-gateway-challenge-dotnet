@@ -21,10 +21,10 @@ public class Payment(string cardNumber, int expiryMonth, int expiryYear, int cvv
     public int Cvv { get; set; } = cvv;
     public string Currency { get; set; } = currency;
     public long Amount { get; set; } = amount;
-    public string Status { get; set; }
-    public Guid AuthorizationCode { get; set; }
+    public PaymentStatus Status { get; set; } = PaymentStatus.NotSet;
+    public string? AuthorizationCode { get; set; }
 
-    public void SetAuthorization(string status, Guid code)
+    public void SetAuthorization(PaymentStatus status, string? code)
     {
         Status = status;
         AuthorizationCode = code;
