@@ -17,7 +17,6 @@ public static class InfrastructureServiceExtensions
     services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>))
         .AddScoped(typeof(IReadRepository<>), typeof(EfRepository<>));
 
-
     logger.LogInformation("{Project} services registered", "Infrastructure");
 
     return services;

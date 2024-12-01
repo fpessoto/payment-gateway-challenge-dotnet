@@ -1,6 +1,6 @@
 namespace PaymentGateway.UseCases.Payments;
 
-public record AuthorizedPaymentDto(
+public record PaymentDto(
     Guid Id,
     String Status,
     int CardNumberLastFour,

@@ -15,4 +15,4 @@ public record CreatePaymentCommand(
     int ExpiryYear,
     string Cvv,
     string Currency,
-    long Amount) : ICommand<Result<AuthorizedPaymentDto>>;
+    long Amount) : ICommand<Result<PaymentDto>>;

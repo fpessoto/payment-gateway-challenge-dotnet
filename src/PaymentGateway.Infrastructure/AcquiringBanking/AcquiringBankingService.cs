@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 using PaymentGateway.Core.Domains;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
@@ -10,16 +11,16 @@ namespace PaymentGateway.Infrastructure.AcquiringBanking;
 public class AcquiringBankingService : IAcquiringBankingService
 {
     private readonly ILogger<AcquiringBankingService> _logger;
-    private readonly HttpClient _httpClient = new HttpClient();
+    private readonly HttpClient _httpClient;
     private readonly string? _baseUrl;
 
-    public AcquiringBankingService(ILogger<AcquiringBankingService> logger, IConfiguration configuration)
+    public AcquiringBankingService(ILogger<AcquiringBankingService> logger, IConfiguration configuration, HttpClient httpClient)
     {
         _logger = logger;
-
         // Retrieve the base URL from appsettings.json
         _baseUrl = configuration["AcquiringBank:BaseUrl"];
-        if (string.IsNullOrEmpty(_baseUrl))
+        _httpClient = httpClient;
+        ; if (string.IsNullOrEmpty(_baseUrl))
         {
             throw new ArgumentNullException(nameof(_baseUrl), "Acquiring Bank BaseUrl is not configured.");
         }
@@ -49,8 +50,6 @@ public class AcquiringBankingService : IAcquiringBankingService
             // Build the full URL
             var url = $"{_baseUrl}{endpoint}";
 
-            _logger.LogInformation("Acquiring service {url}", url);
-
             // Send the POST request
             var response = await _httpClient.PostAsync(url, httpContent);
 
@@ -59,12 +58,14 @@ public class AcquiringBankingService : IAcquiringBankingService
 
             // Deserialize the response body
             var responseBody = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<PaymentResponseDto>(responseBody, options: new JsonSerializerOptions
+            var paymentAuthorizationResponse = JsonSerializer.Deserialize<PaymentResponseDto>(responseBody, options: new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true // Allow case-insensitive deserialization
             });
+            
+            _logger.LogInformation("[AcquiringBankingService] - Authorize Payment - Success {result}", paymentAuthorizationResponse);
 
-            return new AuthorizePaymentResponse(result.Authorized, result.AuthorizationCode);
+            return new AuthorizePaymentResponse(paymentAuthorizationResponse.Authorized, paymentAuthorizationResponse.AuthorizationCode);
         }
         catch (Exception ex)
         {
@@ -76,7 +77,7 @@ public class AcquiringBankingService : IAcquiringBankingService
 
     private string ConvertMonthToString(int month)
     {
-        if (month < 1 || month > 12)
+        if (month is < 1 or > 12)
         {
             throw new ArgumentOutOfRangeException(nameof(month), "Month must be between 1 and 12.");
         }
@@ -84,22 +85,28 @@ public class AcquiringBankingService : IAcquiringBankingService
         return month.ToString("D2");
     }
 
-    public class PaymentRequestDto
+    private class PaymentRequestDto
     {
-        [JsonPropertyName("card_number")] public string CardNumber { get; set; }
+        [JsonPropertyName("card_number")] 
+        public string CardNumber { get; set; }
 
-        [JsonPropertyName("expiry_date")] public string ExpiryDate { get; set; }
+        [JsonPropertyName("expiry_date")] 
+        public string ExpiryDate { get; set; }
 
-        [JsonPropertyName("currency")] public string Currency { get; set; }
+        [JsonPropertyName("currency")] 
+        public string Currency { get; set; }
 
-        [JsonPropertyName("amount")] public decimal Amount { get; set; }
+        [JsonPropertyName("amount")] 
+        public decimal Amount { get; set; }
 
-        [JsonPropertyName("cvv")] public string Cvv { get; set; }
+        [JsonPropertyName("cvv")] 
+        public string Cvv { get; set; }
     }
 
-    public class PaymentResponseDto
+    private class PaymentResponseDto
     {
-        [JsonPropertyName("authorized")] public bool Authorized { get; set; }
+        [JsonPropertyName("authorized")] 
+        public bool Authorized { get; set; }
 
         [JsonPropertyName("authorization_code")]
         public string? AuthorizationCode { get; set; }

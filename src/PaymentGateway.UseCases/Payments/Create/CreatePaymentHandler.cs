@@ -4,9 +4,9 @@ using PaymentGateway.Core.Interfaces;
 namespace PaymentGateway.UseCases.Payments.Create;
 
 public class CreatePaymentHandler(IRepository<Payment> repository, IAcquiringBankingService acquiringBankingService)
-    : ICommandHandler<CreatePaymentCommand, Result<AuthorizedPaymentDto>>
+    : ICommandHandler<CreatePaymentCommand, Result<PaymentDto>>
 {
-    public async Task<Result<AuthorizedPaymentDto>> Handle(CreatePaymentCommand request,
+    public async Task<Result<PaymentDto>> Handle(CreatePaymentCommand request,
         CancellationToken cancellationToken)
     {
         var newPayment = new Payment(request.CardNumber.ToString(), request.ExpiryMonth, request.ExpiryYear,
@@ -22,7 +22,7 @@ public class CreatePaymentHandler(IRepository<Payment> repository, IAcquiringBan
 
         await repository.AddAsync(newPayment, cancellationToken);
 
-        var createdPaymentResponse = new AuthorizedPaymentDto(newPayment.Id, paymentStatus.ToString(),
+        var createdPaymentResponse = new PaymentDto(newPayment.Id, paymentStatus.ToString(),
             newPayment.LastFourCardDigits,
             newPayment.ExpiryMonth, newPayment.ExpiryYear, newPayment.Currency.ToString(), newPayment.Amount,
             authorizePaymentResponse.AuthorizationCode);

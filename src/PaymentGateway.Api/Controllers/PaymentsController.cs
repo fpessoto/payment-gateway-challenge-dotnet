@@ -15,7 +15,7 @@ namespace PaymentGateway.Api.Controllers;
 public class PaymentsController(IMediator mediator) : Controller
 {
     [HttpPost]
-    public async Task<ActionResult<AuthorizedPaymentDto>> Post([FromBody] CreatePaymentRequest request)
+    public async Task<ActionResult<PaymentDto>> Post([FromBody] CreatePaymentRequest request)
     {
         try
         {
@@ -44,7 +44,7 @@ public class PaymentsController(IMediator mediator) : Controller
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<AuthorizedPaymentDto?>> GetPaymentAsync(Guid id)
+    public async Task<ActionResult<PaymentDto?>> GetPaymentAsync(Guid id)
     {
         var result = await mediator.Send(new GetPaymentQuery(id));
 

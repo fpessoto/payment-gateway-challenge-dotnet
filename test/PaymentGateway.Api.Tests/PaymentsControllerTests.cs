@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 
-using PaymentGateway.Api.Models;
 using PaymentGateway.Api.Models.Requests;
+using PaymentGateway.Core.Domains;
 using PaymentGateway.UseCases.Payments;
 
 namespace PaymentGateway.Api.Tests;
@@ -15,7 +15,7 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
     private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
-    public async Task CreatesPaymentAuthorized()
+    public async Task Create_WithValidData_ReturnPaymentAuthorized()
     {
         // Arrange
         var paymentRequest = new CreatePaymentRequest
@@ -32,8 +32,8 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
         var response = await _client.PostAsJsonAsync("/api/Payments", paymentRequest);
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        
-        var paymentResponse = await response.Content.ReadFromJsonAsync<AuthorizedPaymentDto>();
+
+        var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentDto>();
         Assert.NotNull(paymentResponse);
         Assert.NotEqual(Guid.Empty, paymentResponse.Id);
         Assert.Equal(PaymentStatus.Authorized.ToString(), paymentResponse.Status);
@@ -46,7 +46,7 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
     }
 
     [Fact]
-    public async Task CreatesPaymentDenied()
+    public async Task Create_WithInvalidCardData_ReturnPaymentDenied()
     {
         // Arrange
         CreatePaymentRequest paymentRequest = ValidCreatePaymentRequest();
@@ -55,8 +55,8 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
         var response = await _client.PostAsJsonAsync("/api/Payments", paymentRequest);
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        
-        var paymentResponse = await response.Content.ReadFromJsonAsync<AuthorizedPaymentDto>();
+
+        var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentDto>();
         Assert.NotNull(paymentResponse);
         Assert.NotEqual(Guid.Empty, paymentResponse.Id);
         Assert.Equal(PaymentStatus.Declined.ToString(), paymentResponse.Status);
@@ -68,23 +68,8 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
         Assert.True(string.IsNullOrEmpty(paymentResponse.AuthorizationCode));
     }
 
-    private static CreatePaymentRequest ValidCreatePaymentRequest()
-    {
-        var paymentRequest = new CreatePaymentRequest
-        {
-            CardNumber = 2222405343248112,
-            ExpiryMonth = 1,
-            ExpiryYear = 2026,
-            Currency = "USD",
-            Amount = 60000,
-            Cvv = "456"
-        };
-        return paymentRequest;
-    }
-
-
     [Fact]
-    public async Task Returns400ForInvalidPaymentRequest()
+    public async Task Create_WithInvalidData_Returns400ForInvalidPaymentRequest()
     {
         // Arrange
         var invalidPaymentRequest = new CreatePaymentRequest
@@ -99,13 +84,17 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
 
         // Act
         var response = await _client.PostAsJsonAsync("/api/Payments", invalidPaymentRequest);
+        var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentDto>();
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(paymentResponse);
+        Assert.Equal(Guid.Empty, paymentResponse.Id);
+        Assert.Equal(PaymentStatus.Rejected.ToString(), paymentResponse.Status);
     }
 
     [Fact]
-    public async Task Returns400ForMissingRequiredFields()
+    public async Task Create_WithMissingRequiredFields_Returns400()
     {
         // Arrange
         var incompletePaymentRequest = new CreatePaymentRequest
@@ -126,15 +115,15 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
     }
 
     [Fact]
-    public async Task RetrievesAPaymentSuccessfully()
+    public async Task GetById_WithExistentPayment_RetrievesAPaymentSuccessfully()
     {
         var paymentRequest = ValidCreatePaymentRequest();
         var newPaymentResponse = await _client.PostAsJsonAsync("/api/Payments", paymentRequest);
-        var newPayment = await newPaymentResponse.Content.ReadFromJsonAsync<AuthorizedPaymentDto>();
-        
+        var newPayment = await newPaymentResponse.Content.ReadFromJsonAsync<PaymentDto>();
+
         // Act
         var response = await _client.GetAsync($"/api/Payments/{newPayment?.Id}");
-        var paymentResponse = await response.Content.ReadFromJsonAsync<AuthorizedPaymentDto>();
+        var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentDto>();
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -142,12 +131,25 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
     }
 
     [Fact]
-    public async Task Returns404IfPaymentNotFound()
+    public async Task GetById_WithInvalidId_Returns404d()
     {
         // Act
         var response = await _client.GetAsync($"/api/Payments/{Guid.NewGuid()}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+    private static CreatePaymentRequest ValidCreatePaymentRequest()
+    {
+        var paymentRequest = new CreatePaymentRequest
+        {
+            CardNumber = 2222405343248112,
+            ExpiryMonth = 1,
+            ExpiryYear = 2026,
+            Currency = "USD",
+            Amount = 60000,
+            Cvv = "456"
+        };
+        return paymentRequest;
     }
 }

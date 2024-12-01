@@ -29,7 +29,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IAcquiringBankingService, AcquiringBankingService>();
+builder.Services.AddHttpClient<IAcquiringBankingService, AcquiringBankingService>();
+// builder.Services.AddScoped<IAcquiringBankingService, AcquiringBankingService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
