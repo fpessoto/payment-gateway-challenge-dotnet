@@ -37,7 +37,7 @@ public class AcquiringBankingService : IAcquiringBankingService
             {
                 CardNumber = payment.CardNumber,
                 ExpiryDate = $"{month}/{payment.ExpiryYear}",
-                Currency = payment.Currency,
+                Currency = payment.Currency.ToString(),
                 Amount = payment.Amount,
                 Cvv = payment.Cvv.ToString(),
             };

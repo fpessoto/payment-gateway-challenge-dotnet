@@ -2,24 +2,49 @@ using System.Text.RegularExpressions;
 
 namespace PaymentGateway.Core.Domains;
 
-public class Payment(string cardNumber, int expiryMonth, int expiryYear, int cvv, string currency, long amount)
+public class Payment(string cardNumber, int expiryMonth, int expiryYear, string cvv, Currency currency, long amount)
     : EntityBase<Guid>, IAggregateRoot
 {
-    public string EncryptedCardNumber { get; set; } = ValidCardNumber(cardNumber)
-        ? cardNumber
-        : throw new ArgumentException("Invalid Card Number", nameof(cardNumber));
-
-    public string CardNumber { get; set; } = ValidCardNumber(cardNumber)
-        ? cardNumber
-        : throw new ArgumentException("Invalid Card Number", nameof(cardNumber));
+    public string EncryptedCardNumber { get; set; } = SetCardNumber(cardNumber);
+    
+    public string CardNumber { get; set; } = SetCardNumber(cardNumber);
 
     public int LastFourCardDigits { get; set; } =
-        (cardNumber.Length > 4) ? Convert.ToInt32(cardNumber.Substring(cardNumber.Length - 4)) : 0;
+        (SetCardNumber(cardNumber).Length > 4) ? Convert.ToInt32(cardNumber.Substring(cardNumber.Length - 4)) : 0;
 
-    public int ExpiryMonth { get; set; } = expiryMonth;
-    public int ExpiryYear { get; set; } = expiryYear;
-    public int Cvv { get; set; } = cvv;
-    public string Currency { get; set; } = currency;
+    public int ExpiryMonth { get; set; } = SetExpiryMonth(expiryMonth);
+
+    private static int SetExpiryMonth(int expiryMonth)
+    {
+        if(expiryMonth is < 1 or > 12) throw new ArgumentOutOfRangeException( nameof(expiryMonth));
+        
+        return expiryMonth;
+    }
+
+    public int ExpiryYear { get; set; } = SetExpiryYear(expiryYear);
+
+    private static int SetExpiryYear(int expiryYear)
+    {
+        if(expiryYear is < 1 or > 9999) throw new ArgumentOutOfRangeException( nameof(expiryYear));
+        
+        return expiryYear;
+    }
+
+    public string Cvv { get; set; } = SetCvv(cvv);
+
+    private static string SetCvv(string cvv)
+    {
+        if(cvv.Length is < 3 or > 4 ) throw new ArgumentOutOfRangeException( nameof(cvv));
+        
+        if (!Regex.IsMatch(cvv, @"^\d+$"))
+        {
+            throw new ArgumentException("Cvv must contain only numeric characters.", nameof(cardNumber));
+        }
+        
+        return cvv;
+    }
+
+    public Currency Currency { get; set; } = currency;
     public long Amount { get; set; } = amount;
     public PaymentStatus Status { get; set; } = PaymentStatus.NotSet;
     public string? AuthorizationCode { get; set; }
@@ -29,8 +54,8 @@ public class Payment(string cardNumber, int expiryMonth, int expiryYear, int cvv
         Status = status;
         AuthorizationCode = code;
     }
-
-    private static bool ValidCardNumber(string cardNumber)
+    
+    private static string SetCardNumber(string cardNumber)
     {
         if (string.IsNullOrWhiteSpace(cardNumber))
         {
@@ -45,8 +70,10 @@ public class Payment(string cardNumber, int expiryMonth, int expiryYear, int cvv
         if (!Regex.IsMatch(cardNumber, @"^\d+$"))
         {
             throw new ArgumentException("Card number must contain only numeric characters.", nameof(cardNumber));
+            
         }
 
-        return true;
+        return cardNumber;
     }
+   
 }

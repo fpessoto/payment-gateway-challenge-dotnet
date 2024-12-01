@@ -12,7 +12,9 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.ExpiryMonth).IsRequired();
         builder.Property(p => p.ExpiryYear).IsRequired();
         builder.Property(p => p.Cvv).IsRequired();
-        builder.Property(p => p.Currency).IsRequired();
+        builder.Property(p => p.Currency).HasConversion(
+            x => x.Value,
+            x => Currency.FromValue(x)).IsRequired();
         builder.Property(p => p.Amount).IsRequired();
         builder.Property(p => p.LastFourCardDigits).IsRequired();
         builder.Property(p => p.Status).HasConversion(

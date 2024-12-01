@@ -16,6 +16,6 @@ public class GetPaymentHandler(IReadRepository<Payment> repository)
         if (entity == null) return Result.NotFound();
 
         return new AuthorizedPaymentDto(entity.Id, entity.Status.ToString(), entity.LastFourCardDigits, entity.ExpiryMonth,
-            entity.ExpiryYear, entity.Currency, entity.Amount, entity.AuthorizationCode);
+            entity.ExpiryYear, entity.Currency.ToString(), entity.Amount, entity.AuthorizationCode);
     }
 }

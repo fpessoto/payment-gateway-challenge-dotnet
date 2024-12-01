@@ -2,6 +2,7 @@
 
 using MediatR;
 
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 using PaymentGateway.Api.Models.Requests;
@@ -18,15 +19,23 @@ public class PaymentsController(IMediator mediator) : Controller
     [HttpPost]
     public async Task<ActionResult<PostPaymentResponse>> Post([FromBody]CreatePaymentRequest request)
     {
-        var result = await mediator.Send(new CreatePaymentCommand(request.CardNumber, request.ExpiryMonth,
-            request.ExpiryYear, request.Cvv, request.Currency, request.Amount));
-
-        if (result.IsSuccess)
+        try
         {
-            return Ok(result.Value);
-        }
+            var result = await mediator.Send(new CreatePaymentCommand(request.CardNumber, request.ExpiryMonth,
+                request.ExpiryYear, request.Cvv, request.Currency, request.Amount));
 
-        return BadRequest();
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+
+            return BadRequest();
+        }
+        catch (Exception e)
+        {
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+        }
+   
     }
 
     [HttpGet("{id:guid}")]

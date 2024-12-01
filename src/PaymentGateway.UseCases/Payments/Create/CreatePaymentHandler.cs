@@ -10,7 +10,7 @@ public class CreatePaymentHandler(IRepository<Payment> repository, IAcquiringBan
         CancellationToken cancellationToken)
     {
         var newPayment = new Payment(request.CardNumber.ToString(), request.ExpiryMonth, request.ExpiryYear,
-            request.Cvv, request.Currency, request.Amount);
+            request.Cvv, Currency.FromName( request.Currency), request.Amount);
 
         var authorizePaymentResponse = await acquiringBankingService.AuthorizePayment(newPayment);
 
@@ -24,7 +24,7 @@ public class CreatePaymentHandler(IRepository<Payment> repository, IAcquiringBan
 
         var createdPaymentResponse = new AuthorizedPaymentDto(newPayment.Id, paymentStatus.ToString(),
             newPayment.LastFourCardDigits,
-            newPayment.ExpiryMonth, newPayment.ExpiryYear, newPayment.Currency, newPayment.Amount,
+            newPayment.ExpiryMonth, newPayment.ExpiryYear, newPayment.Currency.ToString(), newPayment.Amount,
             authorizePaymentResponse.AuthorizationCode);
 
         return createdPaymentResponse;
