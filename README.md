@@ -142,7 +142,8 @@ src/
 ├── PaymentGateway.Infrastructure/ # Infrastructure services
 ├── PaymentGateway.UseCases/     # Business use cases
 test/
-├── PaymentGateway.Api.Tests/    # Unit and integration tests
+├── PaymentGateway.Api.Tests/    #  Integration tests
+├── PaymentGateway.Api.UnitTests/    # Unit tests
 ```
 
 ## Possible Improvements and Future Developments
