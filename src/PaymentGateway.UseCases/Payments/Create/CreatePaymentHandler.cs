@@ -1,4 +1,5 @@
 ﻿using PaymentGateway.Core.Domains;
+using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.UseCases.Payments.Create;
@@ -9,8 +10,11 @@ public class CreatePaymentHandler(IRepository<Payment> repository, IAcquiringBan
     public async Task<Result<PaymentDto>> Handle(CreatePaymentCommand request,
         CancellationToken cancellationToken)
     {
+        Currency.TryFromName(request.Currency, out Currency? currency);
+        if (currency == null) throw new BusinessException("Invalid Currency");
+
         var newPayment = new Payment(request.CardNumber.ToString(), request.ExpiryMonth, request.ExpiryYear,
-            request.Cvv, Currency.FromName( request.Currency), request.Amount);
+            request.Cvv, Currency.FromName(request.Currency), request.Amount);
 
         var authorizePaymentResponse = await acquiringBankingService.AuthorizePayment(newPayment);
 
@@ -24,8 +28,7 @@ public class CreatePaymentHandler(IRepository<Payment> repository, IAcquiringBan
 
         var createdPaymentResponse = new PaymentDto(newPayment.Id, paymentStatus.ToString(),
             newPayment.LastFourCardDigits,
-            newPayment.ExpiryMonth, newPayment.ExpiryYear, newPayment.Currency.ToString(), newPayment.Amount,
-            authorizePaymentResponse.AuthorizationCode);
+            newPayment.ExpiryMonth, newPayment.ExpiryYear, newPayment.Currency.ToString(), newPayment.Amount);
 
         return createdPaymentResponse;
     }

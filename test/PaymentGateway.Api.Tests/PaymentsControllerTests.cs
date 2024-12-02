@@ -42,7 +42,6 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
         Assert.Equal(2025, paymentResponse.ExpiryYear);
         Assert.Equal("GBP", paymentResponse.Currency);
         Assert.Equal(100, paymentResponse.Amount);
-        Assert.False(string.IsNullOrEmpty(paymentResponse.AuthorizationCode));
     }
 
     [Fact]
@@ -65,31 +64,45 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
         Assert.Equal(2026, paymentResponse.ExpiryYear);
         Assert.Equal("USD", paymentResponse.Currency);
         Assert.Equal(60000, paymentResponse.Amount);
-        Assert.True(string.IsNullOrEmpty(paymentResponse.AuthorizationCode));
     }
 
-    [Fact]
-    public async Task Create_WithInvalidData_Returns400()
+    [Theory]
+    [InlineData(0, 4, 2025, "GBP", 100, "12")] // Invalid card number, invalid CVV
+    [InlineData(123456789012345, 13, 2025, "GBP", 100, "123")] // Invalid expiry month
+    [InlineData(123456789012345, 4, 0, "GBP", 100, "123")] // Invalid expiry year
+    [InlineData(123456789012345, 4, 2025, "", 100, "123")] // Empty currency
+    [InlineData(123456789012345, 4, 2025, "ABC", 100, "123")] // Invalid currency
+    [InlineData(123456789012345, 4, 2025, "GBP", -1, "123")] // Negative amount
+    [InlineData(123456789012345, 4, 2025, "GBP", 100, "")] // Empty CVV
+    public async Task Create_WithInvalidData_Returns400(
+        long cardNumber,
+        int expiryMonth,
+        int expiryYear,
+        string currency,
+        int amount,
+        string cvv)
     {
         // Arrange
         var invalidPaymentRequest = new CreatePaymentRequest
         {
-            CardNumber = 123, // Invalid card number
-            ExpiryMonth = 4,
-            ExpiryYear = 2025,
-            Currency = "GBP",
-            Amount = 100,
-            Cvv = "12" // Invalid CVV
+            CardNumber = cardNumber,
+            ExpiryMonth = expiryMonth,
+            ExpiryYear = expiryYear,
+            Currency = currency,
+            Amount = amount,
+            Cvv = cvv
         };
 
         // Act
         var response = await _client.PostAsJsonAsync("/api/Payments", invalidPaymentRequest);
-        var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentDto>();
-
+        
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        
+        var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentDto>();
+        
         Assert.NotNull(paymentResponse);
-        Assert.Equal(Guid.Empty, paymentResponse.Id);
+        Assert.Null(paymentResponse.Id);
         Assert.Equal(PaymentStatus.Rejected.ToString(), paymentResponse.Status);
     }
 
@@ -139,6 +152,7 @@ public class PaymentsControllerTests(CustomWebApplicationFactory<Program> factor
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
     private static CreatePaymentRequest ValidCreatePaymentRequest()
     {
         var paymentRequest = new CreatePaymentRequest
